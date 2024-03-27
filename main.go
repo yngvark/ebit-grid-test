@@ -5,6 +5,7 @@ import (
 	_ "embed"
 	"fmt"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/yngvark/ebit-grid-test/pkg/game/tiles"
 	"image"
 	"image/color"
 	"log"
@@ -44,6 +45,8 @@ func (g *Game) init() error {
 	middleRectangle = ebiten.NewImage(50, 50)
 	middleRectangle.Fill(color.NRGBA{R: 0x80, G: 0, B: 0, A: 0xff})
 
+	tiles.Init()
+
 	return nil
 }
 
@@ -67,6 +70,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	ebitenutil.DebugPrint(screen, "Hello, World!")
 
 	g.drawStillImage(screen)
+	tiles.Draw(screen)
 	g.drawMovingRectangle(screen)
 }
 
