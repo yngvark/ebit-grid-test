@@ -22,17 +22,13 @@ var gopherImage *ebiten.Image
 var middleRectangle *ebiten.Image
 
 type Game struct {
-	inited bool
+	tilesDrawer tiles.TilesDrawer
 
 	rectangleX float64
 	rectangleY float64
 }
 
 func (g *Game) init() error {
-	defer func() {
-		g.inited = true
-	}()
-
 	// Gopher
 	gopherImageSource, _, err := image.Decode(bytes.NewReader(gopherPng))
 	if err != nil {
@@ -45,19 +41,10 @@ func (g *Game) init() error {
 	middleRectangle = ebiten.NewImage(50, 50)
 	middleRectangle.Fill(color.NRGBA{R: 0x80, G: 0, B: 0, A: 0xff})
 
-	tiles.Init()
-
 	return nil
 }
 
 func (g *Game) Update() error {
-	if !g.inited {
-		err := g.init()
-		if err != nil {
-			return fmt.Errorf("initializing: %w", err)
-		}
-	}
-
 	g.rectangleX += float64(rand.Intn(3)) - 1
 	g.rectangleY += float64(rand.Intn(3)) - 1
 
@@ -70,7 +57,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	ebitenutil.DebugPrint(screen, "Hello, World!")
 
 	g.drawStillImage(screen)
-	tiles.Draw(screen)
+	g.tilesDrawer.Draw(screen)
 	g.drawMovingRectangle(screen)
 }
 
@@ -98,14 +85,36 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 	return 320, 240
 }
 
-func main() {
+func NewGame() (*Game, error) {
+	g := &Game{
+		tilesDrawer: tiles.NewTiles(),
+	}
+
+	err := g.init()
+	if err != nil {
+		return nil, fmt.Errorf("initing: %w", err)
+	}
+
+	return g, nil
+}
+
+func runGame() error {
 	ebiten.SetWindowSize(640, 480)
 	ebiten.SetWindowTitle("Hello, World!")
 
-	game := Game{}
-	game.init()
+	game, err := NewGame()
 
-	if err := ebiten.RunGame(&game); err != nil {
+	err = ebiten.RunGame(game)
+	if err != nil {
+		return fmt.Errorf("running game: %w", err)
+	}
+
+	return nil
+}
+
+func main() {
+	err := runGame()
+	if err != nil {
 		log.Fatal(err)
 	}
 }
