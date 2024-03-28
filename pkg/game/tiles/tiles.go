@@ -23,14 +23,6 @@ const (
 	tileSize = 32
 )
 
-// Map data.
-//var worldMap = [][]int{
-//	{Grass, Water, Mountain, Water, Grass, Grass, Grass},
-//	{Water, Grass, Grass, Water, Grass, Grass, Grass},
-//	{Mountain, Grass, Grass, Grass, Grass, Grass, Grass},
-//	{Water, Grass, Mountain, Mountain, Grass, Water, Grass},
-//}
-
 func (td *Drawer) Draw(screen *ebiten.Image, worldMap [][]int) {
 	// Iterate over the map and draw the tiles.
 	for mapY, row := range worldMap {
@@ -62,13 +54,13 @@ func (td *Drawer) drawAt(img *ebiten.Image, mapX int, mapY int, screen *ebiten.I
 
 func (td *Drawer) init() {
 	td.grassImage = ebiten.NewImage(tileSize, tileSize)
-	td.grassImage.Fill(color.NRGBA{R: 0x00, G: 255, B: 0, A: 0xff})
+	td.grassImage.Fill(color.NRGBA{R: 188, G: 231, B: 132, A: 0xff})
 
 	td.mountainImage = ebiten.NewImage(tileSize, tileSize)
-	td.mountainImage.Fill(color.NRGBA{R: 0x20, G: 0x20, B: 0x20, A: 0xff})
+	td.mountainImage.Fill(color.NRGBA{R: 66, G: 62, B: 55, A: 0xff})
 
 	td.waterImage = ebiten.NewImage(tileSize, tileSize)
-	td.waterImage.Fill(color.NRGBA{R: 0, G: 0, B: 200, A: 0xff})
+	td.waterImage.Fill(color.NRGBA{R: 52, G: 138, B: 167, A: 0xff})
 }
 
 func NewDrawer() *Drawer {
