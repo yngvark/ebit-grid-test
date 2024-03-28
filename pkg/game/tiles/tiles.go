@@ -5,7 +5,7 @@ import (
 	"image/color"
 )
 
-type TilesDrawer struct {
+type Drawer struct {
 	grassImage    *ebiten.Image
 	mountainImage *ebiten.Image
 	waterImage    *ebiten.Image
@@ -24,26 +24,23 @@ const (
 )
 
 // Map data.
-var worldMap = [][]int{
-	{Grass, Water, Mountain, Water, Grass, Grass, Grass},
-	{Water, Grass, Grass, Water, Grass, Grass, Grass},
-	{Mountain, Grass, Grass, Grass, Grass, Grass, Grass},
-	{Water, Grass, Mountain, Mountain, Grass, Water, Grass},
-}
+//var worldMap = [][]int{
+//	{Grass, Water, Mountain, Water, Grass, Grass, Grass},
+//	{Water, Grass, Grass, Water, Grass, Grass, Grass},
+//	{Mountain, Grass, Grass, Grass, Grass, Grass, Grass},
+//	{Water, Grass, Mountain, Mountain, Grass, Water, Grass},
+//}
 
-func (td *TilesDrawer) Draw(screen *ebiten.Image) {
+func (td *Drawer) Draw(screen *ebiten.Image, worldMap [][]int) {
 	// Iterate over the map and draw the tiles.
 	for mapY, row := range worldMap {
 		for mapX, tile := range row {
 			switch tile {
 			case Grass:
-				// Draw grass tile.
 				td.drawAt(td.grassImage, mapX, mapY, screen)
 			case Water:
-				// Draw water tile.
 				td.drawAt(td.waterImage, mapX, mapY, screen)
 			case Mountain:
-				// Draw mountain tile.
 				td.drawAt(td.mountainImage, mapX, mapY, screen)
 			}
 
@@ -52,7 +49,7 @@ func (td *TilesDrawer) Draw(screen *ebiten.Image) {
 	}
 }
 
-func (td *TilesDrawer) drawAt(img *ebiten.Image, mapX int, mapY int, screen *ebiten.Image) {
+func (td *Drawer) drawAt(img *ebiten.Image, mapX int, mapY int, screen *ebiten.Image) {
 	x := mapX * tileSize
 	y := mapY * tileSize
 
@@ -62,7 +59,7 @@ func (td *TilesDrawer) drawAt(img *ebiten.Image, mapX int, mapY int, screen *ebi
 	screen.DrawImage(img, op)
 }
 
-func (td *TilesDrawer) init() {
+func (td *Drawer) init() {
 	td.grassImage = ebiten.NewImage(tileSize, tileSize)
 	td.grassImage.Fill(color.NRGBA{R: 0x00, G: 255, B: 0, A: 0xff})
 
@@ -73,8 +70,8 @@ func (td *TilesDrawer) init() {
 	td.waterImage.Fill(color.NRGBA{R: 0, G: 0, B: 200, A: 0xff})
 }
 
-func NewTiles() TilesDrawer {
-	td := TilesDrawer{}
+func NewDrawer() *Drawer {
+	td := &Drawer{}
 	td.init()
 
 	return td

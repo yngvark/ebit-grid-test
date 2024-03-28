@@ -1,23 +1,16 @@
 package world_map
 
 import (
+	"fmt"
 	"math"
 	"math/rand"
-)
-
-const (
-	width  = 80
-	height = 80
-	nSites = 100 // Number of Voronoi sites
 )
 
 type Point struct {
 	x, y int
 }
 
-func Generate() [][]int {
-	//rand.Seed(time.Now().UnixNano())
-
+func Generate(width, height, nSites int) [][]int {
 	// Generate random sites.
 	sites := make([]Point, nSites)
 	for i := range sites {
@@ -37,15 +30,17 @@ func Generate() [][]int {
 		}
 	}
 
+	// Print the worldMap with site indices.
+	for y := 0; y < height; y++ {
+		fmt.Printf("y=%d: ", y)
+
+		for x := 0; x < width; x++ {
+			fmt.Printf("%2d ", worldMap[y][x])
+		}
+		fmt.Println()
+	}
+
 	return worldMap
-	//
-	//// Print the worldMap with site indices.
-	//for y := 0; y < height; y++ {
-	//	for x := 0; x < width; x++ {
-	//		fmt.Printf("%2d ", worldMap[y][x])
-	//	}
-	//	fmt.Println()
-	//}
 }
 
 func nearestSite(x, y int, sites []Point) int {
