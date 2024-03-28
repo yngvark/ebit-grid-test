@@ -25,22 +25,6 @@ type Game struct {
 	rectangleY float64
 }
 
-func (g *Game) init() error {
-	// Gopher
-	gopherImageSource, _, err := image.Decode(bytes.NewReader(gopherPng))
-	if err != nil {
-		return fmt.Errorf("decoding image: %w", err)
-	}
-
-	g.gopherImage = ebiten.NewImageFromImage(gopherImageSource)
-
-	// Middle rectangle
-	g.middleRectangle = ebiten.NewImage(50, 50)
-	g.middleRectangle.Fill(color.NRGBA{R: 0x80, G: 0, B: 0, A: 0xff})
-
-	return nil
-}
-
 func (g *Game) Update() error {
 	g.rectangleX += float64(rand.Intn(3)) - 1
 	g.rectangleY += float64(rand.Intn(3)) - 1
@@ -81,6 +65,22 @@ func (g *Game) drawMovingRectangle(screen *ebiten.Image) {
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
 	return 320, 240
+}
+
+func (g *Game) init() error {
+	// Gopher
+	gopherImageSource, _, err := image.Decode(bytes.NewReader(gopherPng))
+	if err != nil {
+		return fmt.Errorf("decoding image: %w", err)
+	}
+
+	g.gopherImage = ebiten.NewImageFromImage(gopherImageSource)
+
+	// Middle rectangle
+	g.middleRectangle = ebiten.NewImage(50, 50)
+	g.middleRectangle.Fill(color.NRGBA{R: 0x80, G: 0, B: 0, A: 0xff})
+
+	return nil
 }
 
 func NewGame() (*Game, error) {
