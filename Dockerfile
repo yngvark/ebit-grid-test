@@ -12,7 +12,7 @@ RUN cd /build && \
 
 # Use a non root, unprivileged nginx
 # https://hub.docker.com/r/nginxinc/nginx-unprivileged
-FROM nginxinc/nginx-unprivileged:1.25.1-alpine
+FROM nginxinc/nginx-unprivileged:1.25.4-alpine
 
 COPY web/mime.types etc/nginx/mime.types
 COPY web/index.html web/wasm_exec.js    /usr/share/nginx/html/
