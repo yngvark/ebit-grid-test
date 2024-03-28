@@ -46,19 +46,6 @@ func (g *Game) Update() error {
 	g.rectangleX += float64(rand.Intn(3)) - 1
 	g.rectangleY += float64(rand.Intn(3)) - 1
 
-	select {
-	case <-g.soundTicker.C:
-		err := g.audioPlayer.Rewind()
-		if err != nil {
-			log.Err(err).Msg("rewinding audio player")
-			break
-		}
-
-		g.audioPlayer.Play()
-
-	default:
-	}
-
 	return nil
 }
 
@@ -67,11 +54,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	ebitenutil.DebugPrint(screen, "Hello, World!")
 
-	g.drawStillImage(screen)
 	g.tilesDrawer.Draw(screen, g.worldMap)
 	g.drawMovingRectangle(screen)
-
-	fmt.Printf("Screen size: %dx%d\n", screen.Bounds().Dx(), screen.Bounds().Dy())
 }
 
 func (g *Game) drawStillImage(screen *ebiten.Image) {
@@ -110,9 +94,10 @@ func NewGame() (*Game, error) {
 		tilesDrawer: tiles.NewDrawer(),
 	}
 
-	ebiten.SetWindowSize(1024, 768)
+	//ebiten.SetWindowSize(1024, 768)
 	ebiten.SetWindowTitle("Hello, World!")
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
+	ebiten.MaximizeWindow()
 
 	// Gopher
 	gopherImageSource, _, err := image.Decode(bytes.NewReader(gopherPng))
@@ -145,6 +130,6 @@ func NewGame() (*Game, error) {
 	g.soundTicker = time.NewTicker(2 * time.Second)
 
 	// World map
-	g.worldMap = world_map.Generate(20, 10, 3)
+	g.worldMap = world_map.Generate(100, 100, 80)
 	return g, nil
 }

@@ -35,7 +35,8 @@ func (td *Drawer) Draw(screen *ebiten.Image, worldMap [][]int) {
 	// Iterate over the map and draw the tiles.
 	for mapY, row := range worldMap {
 		for mapX, tile := range row {
-			switch tile {
+			tileType := tile % 3
+			switch tileType {
 			case Grass:
 				td.drawAt(td.grassImage, mapX, mapY, screen)
 			case Water:
