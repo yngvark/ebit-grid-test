@@ -13,6 +13,7 @@ import (
 	"github.com/yngvark/ebit-grid-test/pkg/game/tiles/world_map"
 	"image"
 	"image/color"
+	"math"
 	"math/rand"
 	"time"
 )
@@ -32,7 +33,7 @@ type Game struct {
 	rectangleX float64
 	rectangleY float64
 
-	worldMap [][]int
+	worldMap *world_map.WorldMap
 
 	outsideWidth  int
 	outsideHeight int
@@ -40,11 +41,24 @@ type Game struct {
 	audioPlayer *audio.Player
 
 	soundTicker *time.Ticker
+
+	// cameraViewport is the rectangle of the world map that is visible in the screen/window.
+	cameraViewport *image.Rectangle
+	scaleFactor    float64
+
+	viewportInited bool
 }
 
 func (g *Game) Update() error {
 	g.rectangleX += float64(rand.Intn(3)) - 1
 	g.rectangleY += float64(rand.Intn(3)) - 1
+
+	_, wy := ebiten.Wheel()
+	if wy < 0 {
+		g.scaleFactor *= 0.9 // Decrease the scale factor when scrolling down
+	} else if wy > 0 {
+		g.scaleFactor *= 1.1 // Increase the scale factor when scrolling up
+	}
 
 	return nil
 }
@@ -54,7 +68,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	ebitenutil.DebugPrint(screen, "Hello, World!")
 
-	g.tilesDrawer.Draw(screen, g.worldMap)
+	g.tilesDrawer.Draw(screen, g.worldMap, g.cameraViewport, g.scaleFactor)
 	g.drawMovingRectangle(screen)
 }
 
@@ -84,6 +98,11 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 		log.Print("Window resized to ", outsideWidth, "x", outsideHeight)
 		g.outsideWidth = outsideWidth
 		g.outsideHeight = outsideHeight
+
+		if !g.viewportInited {
+			g.cameraViewport = getCameraViewportOfMapCenter(outsideWidth, outsideHeight, g.worldMap)
+			g.viewportInited = true
+		}
 	}
 
 	return outsideWidth, outsideHeight
@@ -97,6 +116,7 @@ func NewGame() (*Game, error) {
 	//ebiten.SetWindowSize(1024, 768)
 	ebiten.SetWindowTitle("Hello, World!")
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
+	ebiten.SetFullscreen(false)
 	ebiten.MaximizeWindow()
 
 	// Gopher
@@ -130,6 +150,38 @@ func NewGame() (*Game, error) {
 	g.soundTicker = time.NewTicker(2 * time.Second)
 
 	// World map
-	g.worldMap = world_map.Generate(100, 100, 80)
+	worldMap := world_map.Generate(700, 500, 400)
+	g.worldMap = worldMap
+
+	// Viewport
+	windowWidth, windowHeight := ebiten.WindowSize()
+	g.cameraViewport = getCameraViewportOfMapCenter(windowWidth, windowHeight, worldMap)
+
+	// Other
+	g.scaleFactor = 1.0
+
 	return g, nil
+}
+
+// getCameraViewportOfMapCenter calculates which part of the map should be visible inside the viewport.
+func getCameraViewportOfMapCenter(windowWidth int, windowHeight int, worldMap *world_map.WorldMap) *image.Rectangle {
+	windowWidthInCoords := int(math.Ceil(float64(windowWidth) / tiles.TileSize))
+	windowHeightInCoords := int(math.Ceil(float64(windowHeight) / tiles.TileSize))
+
+	// Use map center
+	xCoordsMin := int(math.Floor(float64(worldMap.Width())/2 - float64(windowWidthInCoords)/2))
+	yCoordsMin := int(math.Floor(float64(worldMap.Height()/2 - windowHeightInCoords/2)))
+
+	xCoordsMax := int(math.Ceil(float64(xCoordsMin + windowWidthInCoords)))
+	yCoordsMax := int(math.Ceil(float64(yCoordsMin + windowHeightInCoords)))
+
+	viewPortCoords := image.Rect(
+		xCoordsMin,
+		yCoordsMin,
+		xCoordsMax,
+		yCoordsMax,
+	)
+
+	r := viewPortCoords
+	return &r
 }

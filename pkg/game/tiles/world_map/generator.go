@@ -1,16 +1,35 @@
 package world_map
 
 import (
-	"fmt"
 	"math"
 	"math/rand"
 )
+
+type WorldMap struct {
+	data [][]int
+}
+
+func (m *WorldMap) TileAt(xCoord int, yCoord int) int {
+	return m.data[xCoord][yCoord]
+}
+
+func (m *WorldMap) Height() int {
+	return len(m.data)
+}
+
+func (m *WorldMap) Width() int {
+	if len(m.data) == 0 {
+		return 0
+	}
+
+	return len(m.data[0])
+}
 
 type Point struct {
 	x, y int
 }
 
-func Generate(width, height, nSites int) [][]int {
+func Generate(width, height, nSites int) *WorldMap {
 	// Generate random sites.
 	sites := make([]Point, nSites)
 	for i := range sites {
@@ -31,16 +50,18 @@ func Generate(width, height, nSites int) [][]int {
 	}
 
 	// Print the worldMap with site indices.
-	for y := 0; y < height; y++ {
-		fmt.Printf("y=%d: ", y)
+	//for y := 0; y < height; y++ {
+	//	fmt.Printf("y=%d: ", y)
+	//
+	//	for x := 0; x < width; x++ {
+	//		fmt.Printf("%2d ", worldMap[y][x])
+	//	}
+	//	fmt.Println()
+	//}
 
-		for x := 0; x < width; x++ {
-			fmt.Printf("%2d ", worldMap[y][x])
-		}
-		fmt.Println()
+	return &WorldMap{
+		data: worldMap,
 	}
-
-	return worldMap
 }
 
 func nearestSite(x, y int, sites []Point) int {
