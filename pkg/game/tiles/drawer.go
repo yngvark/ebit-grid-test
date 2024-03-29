@@ -40,18 +40,18 @@ func (d *Drawer) Draw(screen *ebiten.Image, worldMap *world_map.WorldMap, camera
 			tile := worldMap.TileAt(xCoord, yCoord)
 			tileType := tile % 3
 
-			var image *ebiten.Image
+			var tileImage *ebiten.Image
 
 			switch tileType {
 			case Grass:
-				image = d.grassImage
+				tileImage = d.grassImage
 			case Water:
-				image = d.waterImage
+				tileImage = d.waterImage
 			case Mountain:
-				image = d.mountainImage
+				tileImage = d.mountainImage
 			}
 
-			d.drawAt(image, x, y, screen, scaleFactor)
+			d.drawAt(tileImage, x, y, screen, scaleFactor)
 
 			x += TileSize
 		}
