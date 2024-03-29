@@ -153,10 +153,6 @@ func NewGame() (*Game, error) {
 	worldMap := world_map.Generate(700, 500, 400)
 	g.worldMap = worldMap
 
-	// Viewport
-	windowWidth, windowHeight := ebiten.WindowSize()
-	g.cameraViewport = getCameraViewportOfMapCenter(windowWidth, windowHeight, worldMap)
-
 	// Other
 	g.scaleFactor = 1.0
 
