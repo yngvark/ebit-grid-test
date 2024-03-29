@@ -1,14 +1,18 @@
 FROM golang:1.22-alpine as builder
-# https://ebitengine.org/en/documents/install.html
+
+WORKDIR /build
+
 RUN apk add alsa-lib-dev libx11-dev libxrandr-dev libxcursor-dev libxinerama-dev libxi-dev mesa-dev pkgconf \
         git
 
-RUN mkdir /build
-COPY . /build/
+COPY go.mod .
+COPY go.sum .
+RUN go mod download
 
-RUN cd /build && \
-    go mod tidy && \
-    env GOOS=js GOARCH=wasm go build -o app.wasm ./main.go
+COPY . .
+
+ENV GOCACHE=/root/.cache/go-build
+RUN --mount=type=cache,target="/root/.cache/go-build" GOOS=js GOARCH=wasm go build -o app.wasm ./main.go
 
 # Use a non root, unprivileged nginx
 # https://hub.docker.com/r/nginxinc/nginx-unprivileged
