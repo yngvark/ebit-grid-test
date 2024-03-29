@@ -55,9 +55,9 @@ func (g *Game) Update() error {
 
 	_, wy := ebiten.Wheel()
 	if wy < 0 {
-		g.scaleFactor *= 0.9 // Decrease the scale factor when scrolling down
+		g.scaleFactor *= 0.99 // Decrease the scale factor when scrolling down
 	} else if wy > 0 {
-		g.scaleFactor *= 1.1 // Increase the scale factor when scrolling up
+		g.scaleFactor *= 1.01 // Increase the scale factor when scrolling up
 	}
 
 	return nil
@@ -150,7 +150,7 @@ func NewGame() (*Game, error) {
 	g.soundTicker = time.NewTicker(2 * time.Second)
 
 	// World map
-	worldMap := world_map.Generate(700, 500, 400)
+	worldMap := world_map.Generate(700, 500, 600)
 	g.worldMap = worldMap
 
 	// Other

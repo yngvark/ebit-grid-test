@@ -38,10 +38,9 @@ func (d *Drawer) Draw(screen *ebiten.Image, worldMap *world_map.WorldMap, camera
 	for yCoord := yCoordMin; yCoord < yCoordMax; yCoord++ {
 		for xCoord := xCoordMin; xCoord <= xCoordMax; xCoord++ {
 			tile := worldMap.TileAt(xCoord, yCoord)
+
 			tileType := tile % 3
-
 			var tileImage *ebiten.Image
-
 			switch tileType {
 			case Grass:
 				tileImage = d.grassImage
@@ -53,10 +52,10 @@ func (d *Drawer) Draw(screen *ebiten.Image, worldMap *world_map.WorldMap, camera
 
 			d.drawAt(tileImage, x, y, screen, scaleFactor)
 
-			x += TileSize
+			x += int(TileSize * scaleFactor)
 		}
 
-		y += TileSize
+		y += int(TileSize * scaleFactor)
 		x = 0
 	}
 }
@@ -64,7 +63,7 @@ func (d *Drawer) Draw(screen *ebiten.Image, worldMap *world_map.WorldMap, camera
 // Draw the tile image at logical coordinates mapX and mapY
 func (d *Drawer) drawAt(img *ebiten.Image, x int, y int, screen *ebiten.Image, scaleFactor float64) {
 	op := &ebiten.DrawImageOptions{}
-	//op.GeoM.Scale(scaleFactor, scaleFactor)
+	op.GeoM.Scale(scaleFactor, scaleFactor)
 
 	// Set the image's pixel position
 	op.GeoM.Translate(float64(x), float64(y))
