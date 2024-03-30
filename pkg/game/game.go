@@ -64,8 +64,39 @@ type Game struct {
 const mapMoveSpeed = 30
 const zoomSpeed = 3
 const rotationSpeed = 5
+const edgeThreshold = 50
 
 func (g *Game) Update() error {
+	// -------------------------------------------------------------------------------------
+	// Map movement with mouse
+	// -------------------------------------------------------------------------------------
+
+	// Get the current mouse position
+	mouseX, mouseY := ebiten.CursorPosition()
+
+	// Check if the mouse is near the left edge of the screen
+	if mouseX <= edgeThreshold {
+		g.camera.Position[0] -= mapMoveSpeed
+	}
+
+	// Check if the mouse is near the right edge of the screen
+	if mouseX >= g.screenWidth-edgeThreshold {
+		g.camera.Position[0] += mapMoveSpeed
+	}
+
+	// Check if the mouse is near the top edge of the screen
+	if mouseY <= edgeThreshold {
+		g.camera.Position[1] -= mapMoveSpeed
+	}
+
+	// Check if the mouse is near the bottom edge of the screen
+	if mouseY >= g.screenHeight-edgeThreshold {
+		g.camera.Position[1] += mapMoveSpeed
+	}
+
+	// -------------------------------------------------------------------------------------
+	// Map movement with keyboard
+	// -------------------------------------------------------------------------------------
 	if ebiten.IsKeyPressed(ebiten.KeyA) || ebiten.IsKeyPressed(ebiten.KeyArrowLeft) {
 		g.camera.Position[0] -= mapMoveSpeed
 	}
@@ -103,6 +134,9 @@ func (g *Game) Update() error {
 		g.camera.Reset()
 	}
 
+	// -------------------------------------------------------------------------------------
+	// Other stuff
+	// -------------------------------------------------------------------------------------
 	g.rectangleX += float64(rand.Intn(3)) - 1
 	g.rectangleY += float64(rand.Intn(3)) - 1
 
