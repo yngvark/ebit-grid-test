@@ -34,9 +34,10 @@ const (
 const TileSize = 32
 
 type Game struct {
-	grassImage    *ebiten.Image
-	mountainImage *ebiten.Image
-	waterImage    *ebiten.Image
+	grassImage      *ebiten.Image
+	mountainImage   *ebiten.Image
+	waterImage      *ebiten.Image
+	debugBackground *ebiten.Image
 
 	middleRectangle *ebiten.Image
 	rectangleX      float64
@@ -58,10 +59,12 @@ type Game struct {
 	screenHeight int
 	layoutInited bool
 
-	mapViewport *image.Rectangle
+	mapViewport          *image.Rectangle
+	mapStartCoordinate   Coordinate
+	currentMapCoordinate Coordinate
 }
 
-const mapMoveSpeed = 30
+const mapMoveSpeed = 1
 const zoomSpeed = 3
 const rotationSpeed = 5
 const edgeThreshold = 50
@@ -71,29 +74,30 @@ func (g *Game) Update() error {
 	// Map movement with mouse
 	// -------------------------------------------------------------------------------------
 
-	// Get the current mouse position
-	mouseX, mouseY := ebiten.CursorPosition()
+	/*
+		// Get the current mouse position
+		mouseX, mouseY := ebiten.CursorPosition()
 
-	// Check if the mouse is near the left edge of the screen
-	if mouseX <= edgeThreshold {
-		g.camera.Position[0] -= mapMoveSpeed
-	}
+		// Check if the mouse is near the left edge of the screen
+		if mouseX <= edgeThreshold {
+			g.camera.Position[0] -= mapMoveSpeed
+		}
 
-	// Check if the mouse is near the right edge of the screen
-	if mouseX >= g.screenWidth-edgeThreshold {
-		g.camera.Position[0] += mapMoveSpeed
-	}
+		// Check if the mouse is near the right edge of the screen
+		if mouseX >= g.screenWidth-edgeThreshold {
+			g.camera.Position[0] += mapMoveSpeed
+		}
 
-	// Check if the mouse is near the top edge of the screen
-	if mouseY <= edgeThreshold {
-		g.camera.Position[1] -= mapMoveSpeed
-	}
+		// Check if the mouse is near the top edge of the screen
+		if mouseY <= edgeThreshold {
+			g.camera.Position[1] -= mapMoveSpeed
+		}
 
-	// Check if the mouse is near the bottom edge of the screen
-	if mouseY >= g.screenHeight-edgeThreshold {
-		g.camera.Position[1] += mapMoveSpeed
-	}
-
+		// Check if the mouse is near the bottom edge of the screen
+		if mouseY >= g.screenHeight-edgeThreshold {
+			g.camera.Position[1] += mapMoveSpeed
+		}
+	*/
 	// -------------------------------------------------------------------------------------
 	// Map movement with keyboard
 	// -------------------------------------------------------------------------------------
@@ -140,6 +144,15 @@ func (g *Game) Update() error {
 	g.rectangleX += float64(rand.Intn(3)) - 1
 	g.rectangleY += float64(rand.Intn(3)) - 1
 
+	xMovement := int(g.camera.Position[0]) % TileSize
+	yMovement := int(g.camera.Position[1]) % TileSize
+	fmt.Printf("xMovement: %d, yMovement: %d\n", xMovement, yMovement)
+
+	g.currentMapCoordinate = NewCoordinate(g.mapStartCoordinate.X-xMovement, g.mapStartCoordinate.Y-yMovement)
+
+	// TODO this makes stuff buggy fix
+	//g.mapViewport = getMapViewportFromCoordinate(g.screenWidth, g.screenHeight, g.currentMapCoordinate)
+
 	return nil
 }
 
@@ -157,18 +170,18 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	ebitenX, ebitenY := ebiten.CursorPosition()
 	worldX, worldY := g.camera.ScreenToWorld(ebitenX, ebitenY)
-	ebitenutil.DebugPrintAt(
-		screen,
-		fmt.Sprintf("%s\nCursor World Pos: %.2f,%.2f",
-			g.camera.String(),
-			worldX, worldY),
-		0, g.screenHeight-32,
-	)
 
-	ebitenutil.DebugPrintAt(
-		screen,
-		fmt.Sprintf("Cursor ebiten Pos: %d,%d", ebitenX, ebitenY),
-		0, g.screenHeight-50)
+	op := &ebiten.DrawImageOptions{}
+	op.GeoM.Translate(0, float64(g.screenHeight-270))
+	screen.DrawImage(g.debugBackground, op)
+
+	debugInfo :=
+		fmt.Sprintln(g.camera.String()) +
+			fmt.Sprintf("Cursor world pos: %.2f,%.2f\n", worldX, worldY) +
+			fmt.Sprintf("Cursor ebiten pos: %d,%d\n", ebitenX, ebitenY) +
+			fmt.Sprintf("Map coordinate: %s\n", g.currentMapCoordinate.String())
+
+	ebitenutil.DebugPrintAt(screen, debugInfo, 0, g.screenHeight-250)
 }
 
 func (g *Game) DrawTiles(screen *ebiten.Image, worldMap *world_map.WorldMap) {
@@ -202,7 +215,6 @@ func (g *Game) DrawTiles(screen *ebiten.Image, worldMap *world_map.WorldMap) {
 
 			// Draw tile at x, y
 			op := &ebiten.DrawImageOptions{}
-			//op.GeoM.Scale(scaleFactor, scaleFactor)
 			// Set the image's pixel position
 			op.GeoM.Translate(float64(x), float64(y))
 			screen.DrawImage(tileImage, op)
@@ -244,7 +256,10 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 
 		if !g.layoutInited {
 			g.camera = camera.NewCamera(outsideWidth, outsideHeight)
-			g.mapViewport = getMapViewportOfMapCenter(outsideWidth, outsideHeight, g.worldMap)
+
+			g.mapStartCoordinate = NewCoordinate(g.worldMap.Width()/2, g.worldMap.Height()/2)
+			g.mapViewport = getMapViewportFromCoordinate(outsideWidth, outsideHeight, g.mapStartCoordinate)
+
 			g.world = ebiten.NewImage(outsideWidth, outsideHeight)
 
 			g.layoutInited = true
@@ -282,6 +297,9 @@ func NewGame() (*Game, error) {
 
 	g.waterImage = ebiten.NewImage(TileSize, TileSize)
 	g.waterImage.Fill(color.NRGBA{R: 52, G: 138, B: 167, A: 0xff})
+
+	g.debugBackground = ebiten.NewImage(350, 150)
+	g.debugBackground.Fill(color.NRGBA{R: 0, G: 0, B: 0, A: 0xff})
 
 	g.middleRectangle = ebiten.NewImage(50, 50)
 	g.middleRectangle.Fill(color.NRGBA{R: 0x80, G: 0, B: 0, A: 0xff})
