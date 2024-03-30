@@ -54,9 +54,9 @@ type Game struct {
 	camera *camera.Camera
 	world  *ebiten.Image
 
-	outsideWidth  int
-	outsideHeight int
-	layoutInited  bool
+	screenWidth  int
+	screenHeight int
+	layoutInited bool
 
 	mapViewport *image.Rectangle
 }
@@ -112,13 +112,29 @@ func (g *Game) Update() error {
 func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Fill(color.White)
 
-	ebitenutil.DebugPrint(screen, "Hello, World!")
-
 	g.DrawTiles(g.world, g.worldMap)
 	g.camera.Render(g.world, screen)
-
-	//g.tilesDrawer.Draw(screen, g.worldMap)
 	g.drawMovingRectangle(screen)
+
+	ebitenutil.DebugPrint(
+		screen,
+		fmt.Sprintf("TPS: %0.2f\nMove (WASD/Arrows)\nZoom (QE)\nRotate (ZC)\nReset (Space)", ebiten.ActualTPS()),
+	)
+
+	ebitenX, ebitenY := ebiten.CursorPosition()
+	worldX, worldY := g.camera.ScreenToWorld(ebitenX, ebitenY)
+	ebitenutil.DebugPrintAt(
+		screen,
+		fmt.Sprintf("%s\nCursor World Pos: %.2f,%.2f",
+			g.camera.String(),
+			worldX, worldY),
+		0, g.screenHeight-32,
+	)
+
+	ebitenutil.DebugPrintAt(
+		screen,
+		fmt.Sprintf("Cursor ebiten Pos: %d,%d", ebitenX, ebitenY),
+		0, g.screenHeight-50)
 }
 
 func (g *Game) DrawTiles(screen *ebiten.Image, worldMap *world_map.WorldMap) {
@@ -187,10 +203,10 @@ func (g *Game) drawMovingRectangle(screen *ebiten.Image) {
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
-	if outsideHeight != g.outsideHeight || outsideWidth != g.outsideWidth {
+	if outsideHeight != g.screenHeight || outsideWidth != g.screenWidth {
 		log.Print("Window resized to ", outsideWidth, "x", outsideHeight)
-		g.outsideWidth = outsideWidth
-		g.outsideHeight = outsideHeight
+		g.screenWidth = outsideWidth
+		g.screenHeight = outsideHeight
 
 		if !g.layoutInited {
 			g.camera = camera.NewCamera(outsideWidth, outsideHeight)
