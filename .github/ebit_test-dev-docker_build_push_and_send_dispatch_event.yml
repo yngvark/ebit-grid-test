@@ -1,0 +1,82 @@
+name: ebit-test - Dev - Build and push Docker image and send tag as dispatch event
+
+on:
+
+  workflow_dispatch:
+
+  push:
+    branches:
+      - main
+    paths:
+      - 'Dockerfile'
+      - '*.go'
+      - 'web/**'
+      - 'internal/**'
+
+env:
+  AWS_REGION: eu-west-1
+
+  IAC_ENVIRONMENT: yk-foobar-dev
+  APP_NAME: ebit-grid-test
+
+  RECEIVER_REPOSITORY: oslokommune/yngvar-iac
+  RECEIVER_WORKFLOW: ebit-grid-test-dev-receive_dispatch_event_and_commit_image_tag.yml
+
+jobs:
+
+  docker-build-push:
+    permissions:
+      id-token: write
+      contents: read
+      packages: write
+    name: Build and push Docker image
+    uses: oslokommune/reusable-docker-build-push/.github/workflows/reusable-docker-build-push.yml@8fca36e815c8a6ff5e6aad2b1e44a12e4511cda7 # v1.1.0
+    with:
+      ghcr_image_name: yngvark/ebit-grid-test
+      ghcr_enable: true
+      aws_ecr_enable: false
+      push: true
+
+
+  dispatch:
+
+    needs: docker-build-push
+
+    runs-on: ubuntu-latest
+
+    environment: yk-foobar-dev-app-ebit-grid-test
+
+    name: Trigger workflow in another repository 🛫
+
+    steps:
+
+      - name: Send dispatch event with image tag 🛫
+        uses: peter-evans/repository-dispatch@26b39ed245ab8f31526069329e112ab2fb224588 # v2.1.1
+        with:
+          token: ${{ secrets.PAT_FOR_IAC_DISPATCH }}
+          repository: ${{ env.RECEIVER_REPOSITORY }}
+          event-type: ${{ env.IAC_ENVIRONMENT }}-${{ env.APP_NAME }}-image-update
+          client-payload: >
+            {
+              "id": "docker-image-updated",
+              "image_version": "${{ needs.docker-build-push.outputs.image_version }}",
+              "image_digest": "${{ needs.docker-build-push.outputs.image_digest }}",
+              "sender_repository": "${{ github.repository }}",
+              "sender_run_id": "${{ github.run_id }}",
+              "sender_before_sha": "${{ github.event.before }}",
+              "sender_after_sha": "${{ github.event.after }}"
+            }
+
+
+      - name: Write job summary
+        run: |
+          cat >> "$GITHUB_STEP_SUMMARY" <<EOF
+          Repository dispatch event sent to [\`${{ env.RECEIVER_REPOSITORY }}\`](https://github.com/${{ env.RECEIVER_REPOSITORY }}/actions/workflows/${{ env.RECEIVER_WORKFLOW }}) with the following image version:
+
+          \`\`\`text
+          ${{ needs.docker-build-push.outputs.image_version }}
+          ${{ needs.docker-build-push.outputs.image_digest }}
+          \`\`\`
+
+          This value can be used to find the image in the ECR repository in order to update [the ECS task container definition image](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#container_definition_image).
+          EOF
