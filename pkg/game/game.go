@@ -61,29 +61,50 @@ type Game struct {
 	mapViewport *image.Rectangle
 }
 
+const mapMoveSpeed = 30
+const zoomSpeed = 3
+const rotationSpeed = 5
+
 func (g *Game) Update() error {
 	if ebiten.IsKeyPressed(ebiten.KeyA) || ebiten.IsKeyPressed(ebiten.KeyArrowLeft) {
-		g.camera.Position[0] -= 1
+		g.camera.Position[0] -= mapMoveSpeed
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyD) || ebiten.IsKeyPressed(ebiten.KeyArrowRight) {
-		g.camera.Position[0] += 1
+		g.camera.Position[0] += mapMoveSpeed
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyW) || ebiten.IsKeyPressed(ebiten.KeyArrowUp) {
-		g.camera.Position[1] -= 1
+		g.camera.Position[1] -= mapMoveSpeed
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyS) || ebiten.IsKeyPressed(ebiten.KeyArrowDown) {
-		g.camera.Position[1] += 1
+		g.camera.Position[1] += mapMoveSpeed
+	}
+
+	_, wy := ebiten.Wheel()
+	if ebiten.IsKeyPressed(ebiten.KeyQ) || wy < 0 {
+		if g.camera.ZoomFactor > -2400 {
+			g.camera.ZoomFactor -= zoomSpeed
+		}
+	}
+	if ebiten.IsKeyPressed(ebiten.KeyE) || wy > 0 {
+		if g.camera.ZoomFactor < 2400 {
+			g.camera.ZoomFactor += zoomSpeed
+		}
+	}
+
+	if ebiten.IsKeyPressed(ebiten.KeyZ) {
+		g.camera.Rotation += rotationSpeed
+	}
+
+	if ebiten.IsKeyPressed(ebiten.KeyC) {
+		g.camera.Rotation -= rotationSpeed
+	}
+
+	if ebiten.IsKeyPressed(ebiten.KeySpace) {
+		g.camera.Reset()
 	}
 
 	g.rectangleX += float64(rand.Intn(3)) - 1
 	g.rectangleY += float64(rand.Intn(3)) - 1
-
-	_, wy := ebiten.Wheel()
-	if wy < 0 {
-		//g.scaleFactor *= 0.99
-	} else if wy > 0 {
-		//g.tilesDrawer.IncreaseScaleFactor()
-	}
 
 	return nil
 }
