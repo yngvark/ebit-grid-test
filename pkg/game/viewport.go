@@ -1,4 +1,4 @@
-package tiles
+package game
 
 import (
 	"github.com/yngvark/ebit-grid-test/pkg/game/tiles/world_map"
