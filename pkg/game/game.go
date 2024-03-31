@@ -64,7 +64,7 @@ type Game struct {
 	currentMapCoordinate Coordinate
 }
 
-const mapMoveSpeed = 1
+const mapMoveSpeed = 40
 const zoomSpeed = 3
 const rotationSpeed = 5
 const edgeThreshold = 50
@@ -150,21 +150,21 @@ func (g *Game) Update() error {
 	var yMovement int
 	recaulcateMapViewport := false
 
-	if g.camera.Position[0] == TileSize {
+	if g.camera.Position[0] >= TileSize {
 		xMovement = 1
 		recaulcateMapViewport = true
 		g.camera.Position[0] = 0
-	} else if g.camera.Position[0] == -TileSize {
+	} else if g.camera.Position[0] <= -TileSize {
 		xMovement = -1
 		recaulcateMapViewport = true
 		g.camera.Position[0] = 0
 	}
 
-	if g.camera.Position[1] == TileSize {
+	if g.camera.Position[1] >= TileSize {
 		yMovement = 1
 		recaulcateMapViewport = true
 		g.camera.Position[1] = 0
-	} else if g.camera.Position[1] == -TileSize {
+	} else if g.camera.Position[1] <= -TileSize {
 		yMovement = -1
 		recaulcateMapViewport = true
 		g.camera.Position[1] = 0
@@ -180,7 +180,6 @@ func (g *Game) Update() error {
 	// In other words, we don't move the camera position around a huge map, we just allow moving the camera within
 	// the tile size.
 	if recaulcateMapViewport {
-		fmt.Println("Reberegner kart..")
 		g.currentMapCoordinate = NewCoordinate(
 			g.currentMapCoordinate.X+xMovement,
 			g.currentMapCoordinate.Y+yMovement)
@@ -366,7 +365,7 @@ func NewGame() (*Game, error) {
 	g.soundTicker = time.NewTicker(2 * time.Second)
 
 	// World map
-	worldMap := world_map.Generate(700, 500, 600)
+	worldMap := world_map.Generate(1500, 1500, 600)
 	g.worldMap = worldMap
 
 	return g, nil
