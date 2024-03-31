@@ -212,7 +212,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	screen.DrawImage(g.debugBackground, op)
 
 	debugInfo :=
-		fmt.Sprintln(g.camera.String()) +
+		fmt.Sprintln("Custom version: hei1") +
+			fmt.Sprintln(g.camera.String()) +
 			fmt.Sprintf("Cursor world pos: %.2f,%.2f\n", worldX, worldY) +
 			fmt.Sprintf("Cursor ebiten pos: %d,%d\n", ebitenX, ebitenY) +
 			fmt.Sprintf("g.camera.Position[0]: %.2f\n", g.camera.Position[0]) +
