@@ -18,5 +18,6 @@ run: ## Run in Docker, and with Webassembly
 	@echo Now open: http://localhost:8081
 	docker run --rm -p 8081:80 --read-only game
 
-
-# docker run --rm -p 8081:8080 ghcr.io/yngvark/ebit-test:sha-304c932e70c930c29a5715dbf83b4ae96accd776
+run-from-registry: ## Run in Docker from ghcr.io
+	@echo Now open: http://localhost:8081
+	docker run --rm -p 8081:80 --read-only ghcr.io/yngvark/ebit-grid-test:sha-eb55dbdf02bab3df824564c51daf8c8c70f16245
