@@ -14,11 +14,13 @@ func getMapViewportFromCoordinate(screenWidth int, screenHeight int, coordinate 
 	windowWidthInCoords := int(math.Ceil(float64(screenWidth) / TileSize))
 	windowHeightInCoords := int(math.Ceil(float64(screenHeight) / TileSize))
 
-	xCoordsMin := int(math.Floor(float64(coordinate.X) - float64(windowWidthInCoords)/2))
-	yCoordsMin := int(math.Floor(float64(coordinate.Y) - float64(windowHeightInCoords/2)))
+	// -1 and +1 below is there to show tiles when the user scrolls the map, i.e. when the camera changes position. This
+	// makes the camera show the next tile.
+	xCoordsMin := int(math.Floor(float64(coordinate.X)-float64(windowWidthInCoords)/2)) - 1
+	yCoordsMin := int(math.Floor(float64(coordinate.Y)-float64(windowHeightInCoords/2))) - 1
 
-	xCoordsMax := int(math.Ceil(float64(xCoordsMin + windowWidthInCoords)))
-	yCoordsMax := int(math.Ceil(float64(yCoordsMin + windowHeightInCoords)))
+	xCoordsMax := int(math.Ceil(float64(xCoordsMin+windowWidthInCoords))) + 1
+	yCoordsMax := int(math.Ceil(float64(yCoordsMin+windowHeightInCoords))) + 1
 
 	viewPortCoords := image.Rect(
 		xCoordsMin,
