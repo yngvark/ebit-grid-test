@@ -3,7 +3,7 @@ FROM golang:1.22-alpine as builder
 WORKDIR /build
 
 RUN apk add alsa-lib-dev libx11-dev libxrandr-dev libxcursor-dev libxinerama-dev libxi-dev mesa-dev pkgconf \
-        git
+        git curl
 
 COPY go.mod .
 COPY go.sum .
