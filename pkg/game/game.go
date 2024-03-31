@@ -136,6 +136,8 @@ func (g *Game) Update() error {
 
 	if ebiten.IsKeyPressed(ebiten.KeySpace) {
 		g.camera.Reset()
+		g.currentMapCoordinate = g.mapStartCoordinate
+		g.mapViewport = getMapViewportFromCoordinate(g.screenWidth, g.screenHeight, g.currentMapCoordinate)
 	}
 
 	// -------------------------------------------------------------------------------------
@@ -144,14 +146,47 @@ func (g *Game) Update() error {
 	g.rectangleX += float64(rand.Intn(3)) - 1
 	g.rectangleY += float64(rand.Intn(3)) - 1
 
-	xMovement := int(g.camera.Position[0]) % TileSize
-	yMovement := int(g.camera.Position[1]) % TileSize
-	fmt.Printf("xMovement: %d, yMovement: %d\n", xMovement, yMovement)
+	var xMovement int
+	var yMovement int
+	recaulcateMapViewport := false
 
-	g.currentMapCoordinate = NewCoordinate(g.mapStartCoordinate.X-xMovement, g.mapStartCoordinate.Y-yMovement)
+	if g.camera.Position[0] == TileSize {
+		xMovement = 1
+		recaulcateMapViewport = true
+		g.camera.Position[0] = 0
+	} else if g.camera.Position[0] == -TileSize {
+		xMovement = -1
+		recaulcateMapViewport = true
+		g.camera.Position[0] = 0
+	}
 
-	// TODO this makes stuff buggy fix
-	//g.mapViewport = getMapViewportFromCoordinate(g.screenWidth, g.screenHeight, g.currentMapCoordinate)
+	if g.camera.Position[1] == TileSize {
+		yMovement = 1
+		recaulcateMapViewport = true
+		g.camera.Position[1] = 0
+	} else if g.camera.Position[1] == -TileSize {
+		yMovement = -1
+		recaulcateMapViewport = true
+		g.camera.Position[1] = 0
+	}
+
+	// TILTAK:
+	// - Jeg må tegne minst 1 ekstra tile i hver retning, slik at hvitt ikke vises når man beveger seg. Ta enda flere hvis jeg
+	// er redd for ytelse.
+	// - Sjekk camera position vs world pos eller hva det hetter. Må sjekke om transformasjonene kan ødelegge for noe.
+
+	// When camera position has moved beyound a tile, we want to re-calculate the map viewport (which part of the map
+	// is shown on the screen). And reset the camera position.
+	// In other words, we don't move the camera position around a huge map, we just allow moving the camera within
+	// the tile size.
+	if recaulcateMapViewport {
+		fmt.Println("Reberegner kart")
+		g.currentMapCoordinate = NewCoordinate(
+			g.currentMapCoordinate.X+xMovement,
+			g.currentMapCoordinate.Y+yMovement)
+
+		g.mapViewport = getMapViewportFromCoordinate(g.screenWidth, g.screenHeight, g.currentMapCoordinate)
+	}
 
 	return nil
 }
@@ -171,17 +206,22 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	ebitenX, ebitenY := ebiten.CursorPosition()
 	worldX, worldY := g.camera.ScreenToWorld(ebitenX, ebitenY)
 
+	// Draw debug info
 	op := &ebiten.DrawImageOptions{}
-	op.GeoM.Translate(0, float64(g.screenHeight-270))
+	op.GeoM.Translate(float64(g.screenWidth/2-50), float64(g.screenHeight-270))
 	screen.DrawImage(g.debugBackground, op)
 
 	debugInfo :=
 		fmt.Sprintln(g.camera.String()) +
 			fmt.Sprintf("Cursor world pos: %.2f,%.2f\n", worldX, worldY) +
 			fmt.Sprintf("Cursor ebiten pos: %d,%d\n", ebitenX, ebitenY) +
-			fmt.Sprintf("Map coordinate: %s\n", g.currentMapCoordinate.String())
+			fmt.Sprintf("g.camera.Position[0]: %.2f\n", g.camera.Position[0]) +
+			fmt.Sprintf("g.camera.Position[1]: %.2f\n", g.camera.Position[1]) +
+			fmt.Sprintf("currentMapCoordinate: %s\n", g.currentMapCoordinate.String()) +
+			fmt.Sprintf("mapStartCoordinate: %s\n", g.mapStartCoordinate.String()) +
+			fmt.Sprintf("mapViewport: %s\n", g.mapViewport.String())
 
-	ebitenutil.DebugPrintAt(screen, debugInfo, 0, g.screenHeight-250)
+	ebitenutil.DebugPrintAt(screen, debugInfo, g.screenWidth/2, g.screenHeight-250)
 }
 
 func (g *Game) DrawTiles(screen *ebiten.Image, worldMap *world_map.WorldMap) {
@@ -258,6 +298,8 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 			g.camera = camera.NewCamera(outsideWidth, outsideHeight)
 
 			g.mapStartCoordinate = NewCoordinate(g.worldMap.Width()/2, g.worldMap.Height()/2)
+			g.currentMapCoordinate = g.mapStartCoordinate
+
 			g.mapViewport = getMapViewportFromCoordinate(outsideWidth, outsideHeight, g.mapStartCoordinate)
 
 			g.world = ebiten.NewImage(outsideWidth, outsideHeight)
@@ -298,7 +340,7 @@ func NewGame() (*Game, error) {
 	g.waterImage = ebiten.NewImage(TileSize, TileSize)
 	g.waterImage.Fill(color.NRGBA{R: 52, G: 138, B: 167, A: 0xff})
 
-	g.debugBackground = ebiten.NewImage(350, 150)
+	g.debugBackground = ebiten.NewImage(350, 250)
 	g.debugBackground.Fill(color.NRGBA{R: 0, G: 0, B: 0, A: 0xff})
 
 	g.middleRectangle = ebiten.NewImage(50, 50)
