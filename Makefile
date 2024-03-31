@@ -16,7 +16,7 @@ run-go: ## Run natively
 run: ## Run in Docker, and with Webassembly
 	docker build . -t game
 	@echo Now open: http://localhost:8081
-	docker run --rm -p 8081:8080 game
+	docker run --rm -p 8081:80 --read-only game
 
 
 # docker run --rm -p 8081:8080 ghcr.io/yngvark/ebit-test:sha-304c932e70c930c29a5715dbf83b4ae96accd776
