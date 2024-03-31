@@ -227,7 +227,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	screen.DrawImage(g.waterImage, op)
 
 	// Conclusion: I have to draw all tiles directly on screen image, but I would like to draw them on g.world, so that
-	// I can manipulate g.world (with Translate), so that I can get a scrolling effect using Camera.
+	// I can manipulate g.world (with Translate), so that I can get a scrolling effect using the g.camera.
 	// ----------------------------------------------------------------------------------------------------------------
 
 	ebitenutil.DebugPrint(
