@@ -180,7 +180,7 @@ func (g *Game) Update() error {
 	// In other words, we don't move the camera position around a huge map, we just allow moving the camera within
 	// the tile size.
 	if recaulcateMapViewport {
-		fmt.Println("Reberegner kart")
+		fmt.Println("Reberegner kart.")
 		g.currentMapCoordinate = NewCoordinate(
 			g.currentMapCoordinate.X+xMovement,
 			g.currentMapCoordinate.Y+yMovement)
