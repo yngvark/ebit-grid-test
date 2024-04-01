@@ -64,7 +64,7 @@ type Game struct {
 	currentMapCoordinate Coordinate
 }
 
-const mapMoveSpeed = 1
+const mapMoveSpeed = 40
 const zoomSpeed = 3
 const rotationSpeed = 5
 const edgeThreshold = 50
@@ -103,18 +103,14 @@ func (g *Game) Update() error {
 	// -------------------------------------------------------------------------------------
 	if ebiten.IsKeyPressed(ebiten.KeyA) || ebiten.IsKeyPressed(ebiten.KeyArrowLeft) {
 		g.camera.Position[0] -= mapMoveSpeed
-		i = 0
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyD) || ebiten.IsKeyPressed(ebiten.KeyArrowRight) {
-		i = 0
 		g.camera.Position[0] += mapMoveSpeed
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyW) || ebiten.IsKeyPressed(ebiten.KeyArrowUp) {
-		i = 0
 		g.camera.Position[1] -= mapMoveSpeed
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyS) || ebiten.IsKeyPressed(ebiten.KeyArrowDown) {
-		i = 0
 		g.camera.Position[1] += mapMoveSpeed
 	}
 
@@ -142,7 +138,6 @@ func (g *Game) Update() error {
 		g.camera.Reset()
 		g.currentMapCoordinate = g.mapStartCoordinate
 		g.mapViewport = getMapViewportFromCoordinate(g.screenWidth, g.screenHeight, g.currentMapCoordinate)
-		i = 0
 	}
 
 	// -------------------------------------------------------------------------------------
@@ -154,26 +149,26 @@ func (g *Game) Update() error {
 	var xMovement int
 	var yMovement int
 	recaulcateMapViewport := false
-	//
-	//if g.camera.Position[0] >= TileSize {
-	//	xMovement = 1
-	//	recaulcateMapViewport = true
-	//	g.camera.Position[0] = 0
-	//} else if g.camera.Position[0] <= -TileSize {
-	//	xMovement = -1
-	//	recaulcateMapViewport = true
-	//	g.camera.Position[0] = 0
-	//}
-	//
-	//if g.camera.Position[1] >= TileSize {
-	//	yMovement = 1
-	//	recaulcateMapViewport = true
-	//	g.camera.Position[1] = 0
-	//} else if g.camera.Position[1] <= -TileSize {
-	//	yMovement = -1
-	//	recaulcateMapViewport = true
-	//	g.camera.Position[1] = 0
-	//}
+
+	if g.camera.Position[0] >= TileSize {
+		xMovement = 1
+		recaulcateMapViewport = true
+		g.camera.Position[0] = 0
+	} else if g.camera.Position[0] <= -TileSize {
+		xMovement = -1
+		recaulcateMapViewport = true
+		g.camera.Position[0] = 0
+	}
+
+	if g.camera.Position[1] >= TileSize {
+		yMovement = 1
+		recaulcateMapViewport = true
+		g.camera.Position[1] = 0
+	} else if g.camera.Position[1] <= -TileSize {
+		yMovement = -1
+		recaulcateMapViewport = true
+		g.camera.Position[1] = 0
+	}
 
 	// TILTAK:
 	// - Jeg må tegne minst 1 ekstra tile i hver retning, slik at hvitt ikke vises når man beveger seg. Ta enda flere hvis jeg
@@ -198,27 +193,9 @@ func (g *Game) Update() error {
 func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Fill(color.White)
 
-	//g.world = ebiten.NewImage(200, 200)
-	//g.DrawTiles(g.world, g.worldMap)
-	//g.camera.Render(g.world, screen)
-
+	g.DrawTiles(g.world, g.worldMap)
+	g.camera.Render(g.world, screen)
 	g.drawMovingRectangle(screen)
-
-	// Test area
-	var op *ebiten.DrawImageOptions
-
-	op = &ebiten.DrawImageOptions{}
-	op.GeoM.Translate(-20, 100)
-	g.world.DrawImage(g.grassImage, op)
-
-	op = &ebiten.DrawImageOptions{}
-	op.GeoM.Translate(g.camera.Position[0], 0)
-	screen.DrawImage(g.world, op)
-
-	op = &ebiten.DrawImageOptions{}
-	op.GeoM.Translate(-20, 150)
-	op.GeoM.Translate(g.camera.Position[0], 0)
-	screen.DrawImage(g.waterImage, op)
 
 	ebitenutil.DebugPrint(
 		screen,
@@ -229,7 +206,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	worldX, worldY := g.camera.ScreenToWorld(ebitenX, ebitenY)
 
 	// Draw debug info
-	op = &ebiten.DrawImageOptions{}
+	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(float64(g.screenWidth/2-50), float64(g.screenHeight-270))
 	screen.DrawImage(g.debugBackground, op)
 
@@ -247,8 +224,6 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	ebitenutil.DebugPrintAt(screen, debugInfo, g.screenWidth/2, g.screenHeight-250)
 }
 
-var i int = 0
-
 func (g *Game) DrawTiles(screen *ebiten.Image, worldMap *world_map.WorldMap) {
 	// Get coordinates of the world map to draw. The viewport only shows a part of the world map, so we only draw that.
 	// cameraViewport.Min.X is the x position of the viewport, similar for y.
@@ -258,8 +233,8 @@ func (g *Game) DrawTiles(screen *ebiten.Image, worldMap *world_map.WorldMap) {
 	yCoordMin := g.mapViewport.Min.Y
 	yCoordMax := g.mapViewport.Max.Y
 
-	x := -200
-	y := -200
+	x := 0
+	y := 0
 
 	for yCoord := yCoordMin; yCoord < yCoordMax; yCoord++ {
 		for xCoord := xCoordMin; xCoord <= xCoordMax; xCoord++ {
@@ -282,26 +257,13 @@ func (g *Game) DrawTiles(screen *ebiten.Image, worldMap *world_map.WorldMap) {
 			op := &ebiten.DrawImageOptions{}
 			// Set the image's pixel position
 			op.GeoM.Translate(float64(x), float64(y))
-
-			if x < 0 || y < 0 {
-				op.ColorScale.ScaleWithColor(color.NRGBA{R: 80, G: 90, B: 100, A: 255})
-			}
-
 			screen.DrawImage(tileImage, op)
-			//log.Printf("Drawing tile at %d, %d. Tiletype: %d", x, y, tileType)
-			i++
-			if i < 10 {
-				log.Printf("%d Drawing tile at %d, %d. Tiletype: %d", rand.Intn(100), x, y, tileType)
-				if i == 9 {
-					log.Print("----------------------------------------------")
-				}
-			}
 
 			x += TileSize
 		}
 
 		y += TileSize
-		x = TileSize * -extraTiles
+		x = 0
 	}
 }
 
@@ -340,7 +302,7 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 
 			g.mapViewport = getMapViewportFromCoordinate(outsideWidth, outsideHeight, g.mapStartCoordinate)
 
-			g.world = ebiten.NewImage(outsideWidth+300, outsideHeight+300)
+			g.world = ebiten.NewImage(outsideWidth, outsideHeight)
 
 			g.layoutInited = true
 		}
@@ -403,8 +365,7 @@ func NewGame() (*Game, error) {
 	g.soundTicker = time.NewTicker(2 * time.Second)
 
 	// World map
-	worldMap := world_map.Generate(10, 10, 2)
-	//worldMap := world_map.Generate(1500, 1500, 600)
+	worldMap := world_map.Generate(1500, 1500, 600)
 	g.worldMap = worldMap
 
 	return g, nil
