@@ -207,11 +207,10 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	// ----------------------------------------------------------------------------------------------------------------
 	// Relevant code for the problem I'm having.
 	// ----------------------------------------------------------------------------------------------------------------
-	// Method: Draw stuff on g.world. The draw g.world on screen. Then translate g.world, to enable the user to scroll
-	// (using a camera).
+	// Method: Draw stuff on g.world. The draw g.world on screen. Then translate g.world, to enable the user to scroll.
 	var op *ebiten.DrawImageOptions
 
-	// Problem: Grass tile is cut in half after scrolling to the right (use D key).
+	// Problem: When drawing grassImage on g.world, the translation causes it to be cut in half - after translating screen.
 	op = &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(-20, 100)
 	g.world.DrawImage(g.grassImage, op)
@@ -220,14 +219,11 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	op.GeoM.Translate(g.camera.Position[0], 0)
 	screen.DrawImage(g.world, op)
 
-	// However, water is not cut in half. Why?
+	// When drawing waterImage directly on screen and not via g.world, waterImage is not cut in half - just like I want.
 	op = &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(-20, 150)
 	op.GeoM.Translate(g.camera.Position[0], 0)
 	screen.DrawImage(g.waterImage, op)
-
-	// Conclusion: I have to draw all tiles directly on screen image, but I would like to draw them on g.world, so that
-	// I can manipulate g.world (with Translate), so that I can get a scrolling effect using Camera.
 	// ----------------------------------------------------------------------------------------------------------------
 
 	ebitenutil.DebugPrint(
